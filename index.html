@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Album Foto</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <button class="theme-toggle" id="themeToggle">🌓</button>
+
+    <h1>Sagala Family Photo Album</h1>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">Semua</button>
+      <button class="filter-btn" data-filter="family">Keluarga</button>
+      <button class="filter-btn" data-filter="vacation">Liburan</button>
+      <button class="filter-btn" data-filter="event">Acara</button>
+    </div>
+
+    <div class="image" id="imageContainer">
+    <!-- Images will be loaded here -->
+    </div>
+
+<div class="zoom-view" id="zoomView">
+  <img id="zoomImg" src="" alt="Zoom">
+</div>
+
+<button class="add-btn" onclick="triggerFileInput()" title="Tambah Foto"></button>
+<input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)" />
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="script.js"></script>
+  </body>
+</html>
