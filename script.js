@@ -1,130 +1,187 @@
-// 1. Data Awal (Default) jika LocalStorage masih kosong
-const defaultImages = [
-  { src: 'image/img1.jpg', category: 'vacation' },
-  { src: 'image/img(f)1.jpg', category: 'family' }
-];
+// Initialize with sample images
+    const sampleImages = [
+      { src: 'image/img1.jpg', category: 'vacation' },
+      { src: 'image/img2.jpg', category: 'vacation' },
+      { src: 'image/img3.jpg', category: 'vacation' },
+      { src: 'image/img4.jpg', category: 'vacation' },
+      { src: 'image/img5.jpg', category: 'vacation' },
+      { src: 'image/img6.jpg', category: 'vacation' },
+      { src: 'image/img7.jpg', category: 'vacation' },
+      { src: 'image/img8.jpg', category: 'vacation' },
+      { src: 'image/img9.jpg', category: 'vacation' },
+      { src: 'image/img10.jpg', category: 'vacation' },
+      { src: 'image/img11.jpg', category: 'vacation' },
+      { src: 'image/img12.jpg', category: 'vacation' },
+      { src: 'image/img13.jpg', category: 'vacation' },
+      { src: 'image/img(f)1.jpg', category: 'family' }
+    ];
 
-// Mengambil data dari LocalStorage atau pakai default
-let myImages = JSON.parse(localStorage.getItem('myGalleryData')) || defaultImages;
+      const filterButtons = document.querySelectorAll('.filter-btn');
 
-const imageContainer = document.querySelector('.image'); 
-const filterButtons = document.querySelectorAll('.filter-btn');
-const themeToggle = document.getElementById('themeToggle');
+    // Current filter
+    let currentFilter = 'all';
+    let isLoading = false;
 
-// 2. Fungsi Inisialisasi Galeri
-function initGallery() {
-  imageContainer.innerHTML = ''; // Bersihkan container
-  myImages.forEach((img, index) => {
-    createImageItem(img.src, img.category, index + 1);
-  });
-  localStorage.setItem('myGalleryData', JSON.stringify(myImages)); // Simpan state terbaru
-}
+    // Initialize the gallery
+    function initGallery() {
+      sampleImages.forEach((img, index) => {
+        createImageItem(img.src, img.category, index + 1);
+      });
+    }
 
-// 3. Fungsi Membuat Elemen Gambar
-function createImageItem(src, category, altIndex) {
-  const imageItem = document.createElement('div');
-  imageItem.className = `image-item ${category}`;
-  imageItem.dataset.category = category;
-  
-  imageItem.innerHTML = `
-    <img src="${src}" alt="Foto ${altIndex}" loading="lazy">
-    <button class="delete-btn" onclick="hapusGambar(event, this, ${altIndex - 1})">Hapus</button>
-  `;
-  
-  imageItem.addEventListener('click', function(e) {
-    if (e.target.tagName !== 'BUTTON') zoomImage(this);
-  });
-  
-  imageContainer.appendChild(imageItem);
-}
-
-// 4. Fitur Tambah Gambar dengan Pilih Kategori
-function previewImage(event) {
-  const file = event.target.files[0];
-  if (file && file.type.startsWith('image/')) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const imgSrc = e.target.result;
+        // Create image item
+    function createImageItem(src, category, altIndex) {
+      const imageItem = document.createElement('div');
+      imageItem.className = `image-item hidden ${category}`;
+      imageItem.dataset.category = category;
       
-      // Munculkan pilihan kategori
-      Swal.fire({
-        title: 'Pilih Kategori Foto',
-        input: 'select',
-        inputOptions: {
-          'vacation': 'Liburan',
-          'family': 'Keluarga',
-          'event': 'Acara'
-        },
-        inputPlaceholder: 'Pilih kategori...',
-        showCancelButton: true,
-        confirmButtonText: 'Simpan',
-        cancelButtonText: 'Batal'
-      }).then((result) => {
-        if (result.isConfirmed && result.value) {
-          // Tambah ke array data dan simpan
-          myImages.push({ src: imgSrc, category: result.value });
-          initGallery(); // Refresh tampilan
-          Swal.fire('Berhasil!', 'Foto ditambahkan ke kategori ' + result.value, 'success');
+      imageItem.innerHTML = `
+        <img src="${src}" alt="Foto ${altIndex}" loading="lazy">
+        <button class="delete-btn" onclick="hapusGambar(event, this)">Hapus</button>
+      `;
+      
+      imageItem.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'BUTTON') {
+          zoomImage(this);
         }
       });
-    };
-    reader.readAsDataURL(file);
-  }
-}
+      
+      imageContainer.appendChild(imageItem);
+      
+      // Animate in
+      setTimeout(() => {
+        imageItem.classList.remove('hidden');
+      }, 100 * altIndex);
+    }
 
-// 5. Fitur Hapus Gambar (Update LocalStorage)
-function hapusGambar(event, button, index) {
-  event.stopPropagation();
-  Swal.fire({
-    title: 'Hapus Foto?',
-    text: "Tindakan ini tidak bisa dibatalkan!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    confirmButtonText: 'Ya, hapus!',
-    cancelButtonText: 'Batal'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      myImages.splice(index, 1); // Hapus dari array
-      initGallery(); // Re-render dan update LocalStorage
+
+     const themeToggle = document.getElementById('themeToggle');    
+    // Theme toggle
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    });
+
+    // Check saved theme preference
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.add('light-mode');
+    }
+
+
+
+
+
+function zoomImage(el) {
+  const imgSrc = el.querySelector("img").src;
+  const zoomView = document.getElementById("zoomView");
+  document.getElementById("zoomImg").src = imgSrc;
+  zoomView.classList.add("show");
+  
+  // Tambahkan event listener untuk menutup saat klik di luar gambar
+  zoomView.addEventListener('click', function(e) {
+    if (e.target === this) { // Jika yang diklik adalah background (bukan gambar)
+      tutupZoom();
     }
   });
 }
 
-// 6. Fitur Filter (Perbaikan Logika)
-filterButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    filterButtons.forEach(btn => btn.classList.remove('active'));
-    button.classList.add('active');
-    const filter = button.dataset.filter;
-    
-    document.querySelectorAll('.image-item').forEach(item => {
-      if (filter === 'all' || item.dataset.category === filter) {
-        item.style.display = 'block';
-      } else {
-        item.style.display = 'none';
+function tutupZoom() {
+  const zoomView = document.getElementById("zoomView");
+  zoomView.classList.remove("show");
+  // Hapus event listener ketika ditutup
+  zoomView.removeEventListener('click', arguments.callee);
+}
+
+  function hapusGambar(event, button) {
+    event.stopPropagation();
+    const item = button.closest(".image-item");
+    if (confirm("Yakin ingin menghapus gambar ini?")) {
+     item.remove();
+   }
+  }
+
+  function hapusGambar(event, button) {
+    event.stopPropagation();
+    Swal.fire({
+      title: 'Hapus Foto?',
+      text: "Kamu yakin mau hapus foto ini?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const imageItem = button.parentElement;
+        imageItem.classList.add('fade-out');
+        setTimeout(() => {
+          imageItem.remove();
+        }, 400);
       }
     });
-  });
-});
+  }
 
-// 7. Fitur Zoom & Theme (Tetap Sama)
-function zoomImage(el) {
-  const imgSrc = el.querySelector("img").src;
-  document.getElementById("zoomImg").src = imgSrc;
-  document.getElementById("zoomView").classList.add("show");
-}
+  function triggerFileInput() {
+    document.getElementById('fileInput').click(); // Trigger file input
+  }
 
-function tutupZoom() {
-  document.getElementById("zoomView").classList.remove("show");
-}
+  function previewImage(event) {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imgSrc = e.target.result;
+        addImageToGallery(imgSrc); // Tambahkan gambar ke galeri
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 
-themeToggle.addEventListener('click', () => {
-  document.body.classList.toggle('light-mode');
-  localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
-});
+  function addImageToGallery(imgSrc) {
+    const imageContainer = document.querySelector('.image');
+    const imageItem = document.createElement('div');
+    imageItem.classList.add('image-item');
+    imageItem.onclick = function() {
+      zoomImage(imageItem);
+    };
+    const imgElement = document.createElement('img');
+    imgElement.src = imgSrc;
+    imgElement.alt = 'Foto Baru';
+    const deleteBtn = document.createElement('button');
+    deleteBtn.classList.add('delete-btn');
+    deleteBtn.textContent = 'Hapus';
+    deleteBtn.onclick = function(event) {
+      hapusGambar(event, deleteBtn);
+    };
+    imageItem.appendChild(imgElement);
+    imageItem.appendChild(deleteBtn);
+    imageContainer.appendChild(imageItem);
+  }
 
-if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
+      // Filter images
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        currentFilter = button.dataset.filter;
+        
+        document.querySelectorAll('.image-item').forEach(item => {
+          if (currentFilter === 'all' || item.dataset.category === currentFilter) {
+            item.style.display = 'block';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
 
-// Jalankan galeri saat pertama buka
-initGallery();
+    // Close zoom when clicking outside image
+    zoomView.addEventListener('click', function(e) {
+      if (e.target === this || e.target === zoomImg) {
+        tutupZoom();
+      }
+    });
+
+    // Initialize the gallery
+    initGallery();
